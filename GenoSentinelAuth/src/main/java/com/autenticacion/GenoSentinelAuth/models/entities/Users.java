@@ -1,62 +1,53 @@
 package com.autenticacion.GenoSentinelAuth.models.entities;
 
-// Importaciones para JPA, Lombok y Spring Security
-
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 /**
- * Entidad que representa un usuario del sistema GenomeBank.
- * Cada usuario puede tener uno o más roles asignados y se utiliza
- * en el proceso de autenticación y autorización mediante JWT.
- * Se mapea a la tabla "users" en la base de datos.
+ * Entidad que representa un usuario del sistema.
+ * Cada usuario tendrá un solo rol asignado.
  */
-@Entity // Marca la clase como entidad JPA
-@Table(name = "users") // Define la tabla en la base de datos
-@Data // Lombok: genera getters/setters y otros métodos
-public class Users implements UserDetails { // Implementa UserDetails para integración con Spring Security
-    @Id // Clave primaria
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Autoincremental
-    private Long id; // Identificador único del usuario
+@Entity
+@Table(name = "users")
+@Data
+public class Users implements UserDetails {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(nullable = false, unique = true, length = 100) // Username único y obligatorio
-    private String username; // Nombre de usuario
+    @Column(nullable = false, unique = true, length = 100)
+    private String username;
 
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(nullable = false) // Contraseña obligatoria
-    private String password; // Contraseña encriptada
+    @Column(nullable = false)
+    private String password;
 
-    private Boolean active = true; // Indica si el usuario está activo
+    private Boolean active = true;
 
-    @ManyToMany(fetch = FetchType.EAGER) // Relación muchos a muchos con roles, carga inmediata
-    @JoinTable(
-            name = "user_role", // Tabla intermedia
-            joinColumns = @JoinColumn(name = "user_id"), // FK usuario
-            inverseJoinColumns = @JoinColumn(name = "role_id") // FK rol
-    )
-    private Set<Role> roles = new HashSet<>(); // Conjunto de roles asignados al usuario
+    // Relación con el rol de usuario (muchos a uno con la tabla roles)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role; // Un usuario tiene un solo rol
 
-    // Devuelve las autoridades (roles) del usuario para Spring Security
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Transforma cada rol en una autoridad con prefijo "ROLE_"
-        return roles.stream()
-                .map(r -> (GrantedAuthority) () -> "ROLE_" + r.getName())
-                .collect(Collectors.toSet());
+        // El rol del usuario se asigna como la única autoridad
+        return List.of(() -> "ROLE_" + role.getName());
     }
 
-    // Métodos requeridos por UserDetails para el control de la cuenta
-    @Override public boolean isAccountNonExpired() { return true; } // La cuenta nunca expira
-    @Override public boolean isAccountNonLocked() { return true; } // La cuenta nunca se bloquea
-    @Override public boolean isCredentialsNonExpired() { return true; } // Las credenciales nunca expiran
-    @Override public boolean isEnabled() { return active; } // El usuario está habilitado si activo es true
+    @Override
+    public boolean isAccountNonExpired() { return true; }
+    @Override
+    public boolean isAccountNonLocked() { return true; }
+    @Override
+    public boolean isCredentialsNonExpired() { return true; }
+    @Override
+    public boolean isEnabled() { return active; }
 }
