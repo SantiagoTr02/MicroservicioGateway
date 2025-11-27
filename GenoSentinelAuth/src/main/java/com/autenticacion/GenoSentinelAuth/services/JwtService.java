@@ -20,7 +20,7 @@ import java.util.Map;
  * Permite generar y validar tokens para autenticación y autorización.
  * Utiliza una clave secreta y un tiempo de expiración configurable.
  */
-@Service // Indica que esta clase es un servicio gestionado por Spring
+@Service
 public class JwtService {
     /**
      * Clave secreta utilizada para firmar y verificar los tokens JWT.
@@ -40,9 +40,9 @@ public class JwtService {
                       @Value("${jwt.exp-min}") long expMinutes) {
         // Decodifica la clave secreta desde base64 si corresponde, o la usa como texto plano
         byte[] raw = secret.matches("^[A-Za-z0-9+/=]+$") ? Decoders.BASE64.decode(secret) : secret.getBytes();
-        // Genera la clave secreta para firmar/verificar JWT
+        // Genera la clave secreta para verificar JWT
         this.key = Keys.hmacShaKeyFor(raw);
-        // Guarda el tiempo de expiración configurado
+        // Guarda el tiempo de expiracion configurado
         this.expMinutes = expMinutes;
     }
 
@@ -57,10 +57,10 @@ public class JwtService {
         List<String> safeRoles = roles == null ? List.of() : roles; // Asegura que la lista de roles no sea nula
         // Construye el token JWT
         return Jwts.builder()
-                .subject(subject) // Establece el sujeto (username)
+                .subject(subject) // Establece el username
                 .claims(Map.of("roles", safeRoles)) // Agrega los roles como claim personalizado
-                .issuedAt(Date.from(now)) // Fecha de emisión
-                .expiration(Date.from(now.plusSeconds(expMinutes * 60))) // Fecha de expiración
+                .issuedAt(Date.from(now)) // Fecha de emision
+                .expiration(Date.from(now.plusSeconds(expMinutes * 60))) // Fecha de expiracion
                 // Firma el token con la clave y algoritmo seguro
                 .signWith(key)
                 .signWith(key, Jwts.SIG.HS256)
@@ -73,7 +73,7 @@ public class JwtService {
      * @return claims extraídos del token
      */
     public Claims parse(String token) {
-        // Elimina el prefijo "Bearer " si está presente
+        // Elimina el prefijo Bearer si está presente
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }

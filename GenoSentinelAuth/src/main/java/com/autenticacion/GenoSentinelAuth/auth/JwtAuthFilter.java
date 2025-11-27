@@ -15,10 +15,10 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Filtro de autenticación JWT para Spring Security.
- * Intercepta cada petición HTTP y valida el token JWT presente en la cabecera Authorization.
- * Si el token es válido, establece la autenticación en el contexto de seguridad con los roles del usuario.
- * Si el token es inválido o no está presente, la petición continúa sin autenticación.
+ * Filtro de autenticaci0n JWT para Spring Security.
+ * Intercepta cada petici0n HTTP y valida el token JWT presente en la cabecera Authorization.
+ * Si el token es valido, establece la autenticacion en el contexto de seguridad con los roles del usuario.
+ * Si el token es invalido o no está presente, la petición continúa sin autenticacion.
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -37,7 +37,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Método principal del filtro que intercepta cada petición HTTP.
+     * Metodo principal del filtro que intercepta cada peticion HTTP.
      * Extrae el token JWT de la cabecera Authorization, lo valida y establece la autenticación.
      * Si el token no es válido, limpia el contexto de seguridad.
      * @param req petición HTTP
@@ -73,17 +73,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             .map(SimpleGrantedAuthority::new)
                             .toList();
 
-            // Crea el token de autenticación y lo establece en el contexto
+            // Crea el token de autenticacion y lo establece en el contexto
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(username, "N/A", authorities);
 
             SecurityContextHolder.getContext().setAuthentication(auth);
         } catch (Exception e) {
-            // Si el token es inválido, limpia el contexto de seguridad
+            // Si el token es invalido, limpia el contexto de seguridad
             SecurityContextHolder.clearContext();
         }
 
-        // Continúa con la cadena de filtros
         chain.doFilter(req, res);
     }
 }

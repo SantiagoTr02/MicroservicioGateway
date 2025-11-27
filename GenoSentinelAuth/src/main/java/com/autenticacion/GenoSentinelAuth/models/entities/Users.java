@@ -31,7 +31,7 @@ public class Users implements UserDetails {
 
     private Boolean active = true;
 
-    // Relación con el rol de usuario (muchos a uno con la tabla roles)
+    // Relacion con el rol de usuario (muchos a uno con la tabla roles)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role; // Un usuario tiene un solo rol

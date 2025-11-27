@@ -20,36 +20,36 @@ public class GatewayController {
     @Value("${microservicio.genomica.url}")
     private String genomicaUrl;
 
-    // Método para acceder a la URL de la Clínica (sin operaciones)
+    // Metodo para acceder a la URL de la Clínica (sin operaciones)
     @GetMapping("/clinica")
     public ResponseEntity<String> accessClinica(@RequestHeader("Authorization") String token) {
         // Simular la conexión con el microservicio de Clínica
         return simulateRedirection(token, clinicaUrl + "/patients/");
     }
 
-    // Método para acceder a la URL de Genómica (sin operaciones)
+    // Metodo para acceder a la URL de Genómica (sin operaciones)
     @GetMapping("/genomica")
     public ResponseEntity<String> accessGenomica(@RequestHeader("Authorization") String token) {
-        // Simular la conexión con el microservicio de Genómica
+        // Simular la conexión con el microservicio de Genomica
         return simulateRedirection(token, genomicaUrl + "/gene/");
     }
 
-    // Método para simular la redirección a un microservicio
+    // Metodo para simular la redireccion a un microservicio
     private ResponseEntity<String> simulateRedirection(String token, String url) {
         try {
-            // 1. Validar el token JWT
+            //Validar el token JWT
             Claims claims = jwt.parse(token);
             String username = claims.getSubject();
-            System.out.println("Usuario autenticado: " + username);  // Imprime el usuario autenticado
+            System.out.println("Usuario autenticado: " + username);
 
-            // 2. Aquí simula la conexión al microservicio (sin hacer la petición real)
+            //Aquí simula la conexión al microservicio (sin hacer la petición real)
             System.out.println("Redirigiendo a microservicio en la URL: " + url);
 
-            // 3. Devolver una respuesta que simula la conexión
+            //Devolver una respuesta que simula la conexion
             return ResponseEntity.status(HttpStatus.OK).body("Conexión simulada con el microservicio en: " + url);
 
         } catch (Exception e) {
-            // Si el token es inválido o expiró, retornar error
+            // Si el token es invalido o expiro, retornar error
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido o expirado");
         }
     }
