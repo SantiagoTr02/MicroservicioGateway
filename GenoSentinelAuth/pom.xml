@@ -86,6 +86,13 @@
             <version>0.13.0</version>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Dependencia para RestTemplate -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

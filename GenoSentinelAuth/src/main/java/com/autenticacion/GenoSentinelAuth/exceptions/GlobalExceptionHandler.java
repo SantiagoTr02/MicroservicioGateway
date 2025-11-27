@@ -1,27 +1,25 @@
 package com.autenticacion.GenoSentinelAuth.exceptions;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.HttpStatus;
 
-import java.util.Map;
-
-/**
- * Manejador global de excepciones personalizadas.
- * Retorna respuestas JSON legibles para Postman o clientes HTTP.
- */
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(InvalidEmailException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidEmail(InvalidEmailException ex) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of(
-                        "error", "Invalid email",
-                        "message", ex.getMessage()
-                ));
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<String> handleInvalidInputException(InvalidInputException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<String> handleIncorrectPasswordException(IncorrectPasswordException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
 }
