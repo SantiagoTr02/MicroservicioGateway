@@ -13,6 +13,12 @@ import com.autenticacion.GenoSentinelAuth.repositories.UsersRepository;
 
 import com.autenticacion.GenoSentinelAuth.services.JwtService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +32,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Tag(name = "Authentication", description = "Endpoints para autenticación y registro de usuarios")
 public class AuthController {
 
     private final AuthenticationManager authManager;
@@ -34,16 +41,27 @@ public class AuthController {
     private final JwtService jwt;
     private final PasswordEncoder passwordEncoder;
 
+    // ------------------------------
+    // LOGIN
+    // ------------------------------
 
-    //LOGIN
+    @Operation(
+            summary = "Iniciar sesión",
+            description = "Autentica un usuario mediante username, email y password. "
+                    + "Devuelve un JWT para usar en otros microservicios."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso"),
+            @ApiResponse(responseCode = "400", description = "Entrada inválida", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Credenciales incorrectas", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content)
+    })
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> req) {
 
         String username = req.get("username");
         String email    = req.get("email");
         String password = req.get("password");
-
-        // -------- VALIDACIONES --------
 
         if (username == null || username.trim().isEmpty()) {
             throw new InvalidInputException("Username cannot be empty");
@@ -57,16 +75,13 @@ public class AuthController {
             throw new InvalidInputException("Password cannot be empty");
         }
 
-        // Buscar usuario
         Users user = usuarioRepo.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User " + username + " not found"));
 
-        // Validar email
         if (!email.equals(user.getEmail())) {
             throw new InvalidEmailException("Email does not match registered account");
         }
 
-        // Validar contraseña mediante Spring Security
         try {
             authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password)
@@ -75,11 +90,7 @@ public class AuthController {
             throw new IncorrectPasswordException("Incorrect password");
         }
 
-        // Rol del usuario
-        String roleName = user.getRole().getName();
-        List<String> roles = List.of(roleName);
-
-        // Crear token
+        List<String> roles = List.of(user.getRole().getName());
         String token = jwt.generate(user.getUsername(), roles);
 
         return Map.of(
@@ -89,12 +100,22 @@ public class AuthController {
         );
     }
 
+    // ------------------------------
+    // REGISTER
+    // ------------------------------
 
+    @Operation(
+            summary = "Registrar un usuario",
+            description = "Crea un nuevo usuario en el sistema con el rol USER por defecto."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Usuario creado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Entrada inválida", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Rol USER no encontrado", content = @Content)
+    })
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Object> register(@RequestBody RegisterRequest req) {
-
-
 
         if (req.getUsername() == null || req.getUsername().trim().isEmpty()) {
             throw new InvalidInputException("Username cannot be empty");
@@ -108,16 +129,13 @@ public class AuthController {
             throw new InvalidInputException("Email cannot be empty");
         }
 
-        // Usuario duplicado
         if (usuarioRepo.findByUsername(req.getUsername()).isPresent()) {
             throw new InvalidInputException("Username already exists");
         }
 
-        // Rol USER
         Role roleUser = rolRepo.findByName("USER")
                 .orElseThrow(() -> new UserNotFoundException("Role USER not found"));
 
-        // Crear usuario
         Users user = new Users();
         user.setUsername(req.getUsername());
         user.setEmail(req.getEmail());
@@ -137,6 +155,7 @@ public class AuthController {
     }
 
 
+    // Manejador de errores de autenticación
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
     public Map<String, String> onAuthError(Exception e) {
